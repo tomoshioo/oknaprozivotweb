@@ -260,6 +260,22 @@ function Katalog() {
                 {regions.map((region) => (<option key={region} value={region}>{region}</option>))}
               </Select>
             </div>
+            <div>
+              <Label htmlFor="contact-message" className="text-gray-700">Vaše zpráva</Label>
+              <textarea
+                id="contact-message"
+                name="message"
+                placeholder="Popište nám váš projekt..."
+                rows={5}
+                className="mt-2 w-full px-3 py-2 border border-input rounded-md text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-y min-h-[100px]"
+              />
+            </div>
+            <div className="flex items-start gap-2">
+              <Checkbox id="contact-consent" name="consent" value="Souhlasím" className="mt-1" required />
+              <Label htmlFor="contact-consent" className="text-sm text-gray-600">
+                Souhlasím se <Link to="/ochrana-udaju" className="text-green-500 underline">zpracováním osobních údajů</Link> *
+              </Label>
+            </div>
             <Button type="submit" className="w-full bg-green-500 hover:bg-green-600 text-white py-6 text-lg font-semibold" disabled={contactFormStatus === 'sending'}>
               {contactFormStatus === 'sending' ? 'Odesílám…' : 'Poslat'}
             </Button>
