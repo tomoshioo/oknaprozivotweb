@@ -1,9 +1,23 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import { Phone, ArrowLeft, Menu, X, MapPin, ChevronLeft, ChevronRight } from 'lucide-react'
 
 function Portfolio() {
+  const [searchParams] = useSearchParams()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  useEffect(() => {
+    const section = searchParams.get('section')
+    if (section) {
+      const timer = setTimeout(() => {
+        const element = document.getElementById(section)
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }
+      }, 100)
+      return () => clearTimeout(timer)
+    }
+  }, [searchParams])
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
   const [currentGallery, setCurrentGallery] = useState<string[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -95,7 +109,7 @@ function Portfolio() {
             <div className="hidden md:flex items-center">
               <a href="tel:+420608861111" className="flex items-center gap-2 px-5 py-2.5 border-2 border-green-500 text-green-500 rounded-full hover:bg-green-500 hover:text-white transition-all font-medium">
                 <Phone className="w-4 h-4" />
-                <span>608 861 111</span>
+                <span>Zavolejte: 608 861 111</span>
               </a>
             </div>
             <button className="md:hidden p-2" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
@@ -123,14 +137,14 @@ function Portfolio() {
           </Link>
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Naše realizace</h1>
           <p className="text-lg text-gray-600 max-w-2xl">
-            Prohlédněte si naše dokončené projekty. Od výměny oken přes zateplení fasád až po kompletní rekonstrukce domů.
+            Prohlédněte si naše dokončené projekty. Od výměny oken přes zateplení fasád až po kompletní rekonstrukce domů. Každý projekt je důkazem naší kvality a profesionálního přístupu.
           </p>
         </div>
       </section>
 
       {/* Portfolio Sections */}
       {portfolioData.map((location) => (
-        <section key={location.id} id={location.id} className="py-16">
+        <section key={location.id} id={location.id} className="py-16 scroll-mt-36">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center gap-3 mb-4">
               <MapPin className="w-6 h-6 text-green-500" />

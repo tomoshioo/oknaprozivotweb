@@ -1,4 +1,16 @@
-import { HashRouter, Routes, Route } from 'react-router-dom'
+import { HashRouter, Routes, Route, useLocation } from 'react-router-dom'
+import { useEffect } from 'react'
+
+function ScrollToTop() {
+  const { pathname, search } = useLocation()
+  useEffect(() => {
+    if (pathname === '/portfolio' && search.includes('section=')) {
+      return
+    }
+    window.scrollTo(0, 0)
+  }, [pathname, search])
+  return null
+}
 import Home from './pages/Home'
 import Katalog from './pages/Katalog'
 import Portfolio from './pages/Portfolio'
@@ -11,6 +23,7 @@ import CookieConsent from './components/CookieConsent'
 function App() {
   return (
     <HashRouter>
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/katalog" element={<Katalog />} />

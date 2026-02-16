@@ -6,9 +6,14 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Select } from '@/components/ui/select'
+import { submitContactForm } from '@/lib/formSubmit'
 
 function Katalog() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [heroFormStatus, setHeroFormStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle')
+  const [heroFormMessage, setHeroFormMessage] = useState('')
+  const [contactFormStatus, setContactFormStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle')
+  const [contactFormMessage, setContactFormMessage] = useState('')
 
   const salamanderWindows = [
     { title: "BluEvolution 82", image: "/images/ram-okna.png", specs: [{ label: "Těsnění", value: "3" }, { label: "Komor", value: "6" }, { label: "Stavební hloubka", value: "82mm" }] },
@@ -53,7 +58,7 @@ function Katalog() {
             <div className="hidden md:flex items-center">
               <a href="tel:+420608861111" className="flex items-center gap-2 px-5 py-2.5 border-2 border-green-500 text-green-500 rounded-full hover:bg-green-500 hover:text-white transition-all font-medium">
                 <Phone className="w-4 h-4" />
-                <span>608 861 111</span>
+                <span>Zavolejte: 608 861 111</span>
               </a>
             </div>
             <button className="md:hidden p-2" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
@@ -87,21 +92,45 @@ function Katalog() {
             </div>
             <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-8 shadow-2xl">
               <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">Konzultace zdarma</h3>
-              <form className="space-y-4">
+              <form
+                className="space-y-4"
+                onSubmit={async (e) => {
+                  e.preventDefault()
+                  setHeroFormStatus('sending')
+                  setHeroFormMessage('')
+                  const result = await submitContactForm(e.currentTarget)
+                  if (result.success) {
+                    setHeroFormStatus('success')
+                    setHeroFormMessage('Zpráva byla odeslána. Ozveme se vám co nejdříve.')
+                    e.currentTarget.reset()
+                  } else {
+                    setHeroFormStatus('error')
+                    setHeroFormMessage(result.error)
+                  }
+                }}
+              >
+                {heroFormStatus === 'success' && (
+                  <div className="p-3 rounded-lg bg-green-50 text-green-800 text-sm">{heroFormMessage}</div>
+                )}
+                {heroFormStatus === 'error' && (
+                  <div className="p-3 rounded-lg bg-red-50 text-red-800 text-sm">{heroFormMessage}</div>
+                )}
                 <div className="grid grid-cols-2 gap-4">
-                  <div><Label htmlFor="firstname" className="text-gray-700 text-sm">Křestní jméno *</Label><Input id="firstname" placeholder="Jméno" className="mt-1" /></div>
-                  <div><Label htmlFor="lastname" className="text-gray-700 text-sm">Příjmení *</Label><Input id="lastname" placeholder="Příjmení" className="mt-1" /></div>
+                  <div><Label htmlFor="firstname" className="text-gray-700 text-sm">Křestní jméno *</Label><Input id="firstname" name="firstname" placeholder="Jméno" className="mt-1" required /></div>
+                  <div><Label htmlFor="lastname" className="text-gray-700 text-sm">Příjmení *</Label><Input id="lastname" name="lastname" placeholder="Příjmení" className="mt-1" required /></div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                  <div><Label htmlFor="phone" className="text-gray-700 text-sm">Telefon *</Label><Input id="phone" type="tel" placeholder="730 123 456" className="mt-1" /></div>
-                  <div><Label htmlFor="email" className="text-gray-700 text-sm">E-mail *</Label><Input id="email" type="email" placeholder="vas@email.cz" className="mt-1" /></div>
+                  <div><Label htmlFor="phone" className="text-gray-700 text-sm">Telefon *</Label><Input id="phone" name="phone" type="tel" placeholder="730 123 456" className="mt-1" required /></div>
+                  <div><Label htmlFor="email" className="text-gray-700 text-sm">E-mail *</Label><Input id="email" name="email" type="email" placeholder="vas@email.cz" className="mt-1" required /></div>
                 </div>
-                <div><Label htmlFor="message" className="text-gray-700 text-sm">Vaše zpráva *</Label><textarea id="message" placeholder="Vaše zpráva" rows={3} className="w-full mt-1 px-3 py-2 border rounded-md text-sm" /></div>
+                <div><Label htmlFor="message" className="text-gray-700 text-sm">Vaše zpráva *</Label><textarea id="message" name="message" placeholder="Vaše zpráva" rows={3} className="w-full mt-1 px-3 py-2 border rounded-md text-sm" required /></div>
                 <div className="flex items-start gap-2">
-                  <Checkbox id="consent" className="mt-1" />
-                  <Label htmlFor="consent" className="text-xs text-gray-600">Souhlasím se <a href="#" className="text-green-500 underline">zpracováním osobních údajů</a></Label>
+                  <Checkbox id="consent" name="consent" value="Souhlasím" className="mt-1" required />
+                  <Label htmlFor="consent" className="text-xs text-gray-600">Souhlasím se <Link to="/ochrana-udaju" className="text-green-500 underline">zpracováním osobních údajů</Link></Label>
                 </div>
-                <Button type="submit" className="w-full bg-green-500 hover:bg-green-600 text-white py-4 text-lg font-semibold">Odeslat zprávu</Button>
+                <Button type="submit" className="w-full bg-green-500 hover:bg-green-600 text-white py-4 text-lg font-semibold" disabled={heroFormStatus === 'sending'}>
+                  {heroFormStatus === 'sending' ? 'Odesílám…' : 'Odeslat zprávu'}
+                </Button>
                 <p className="text-center text-sm text-gray-500">Ozveme se Vám co nejdříve</p>
               </form>
             </div>
@@ -196,20 +225,44 @@ function Katalog() {
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Kontaktujte nás</h2>
             <p className="text-gray-600">Vyplňte formulář níže a my Vás budeme co nejdříve kontaktovat.</p>
           </div>
-          <form className="space-y-6 bg-white rounded-xl p-8 shadow-sm">
+          <form
+            className="space-y-6 bg-white rounded-xl p-8 shadow-sm"
+            onSubmit={async (e) => {
+              e.preventDefault()
+              setContactFormStatus('sending')
+              setContactFormMessage('')
+              const result = await submitContactForm(e.currentTarget)
+              if (result.success) {
+                setContactFormStatus('success')
+                setContactFormMessage('Zpráva byla odeslána. Ozveme se vám co nejdříve.')
+                e.currentTarget.reset()
+              } else {
+                setContactFormStatus('error')
+                setContactFormMessage(result.error)
+              }
+            }}
+          >
+            {contactFormStatus === 'success' && (
+              <div className="p-4 rounded-lg bg-green-50 text-green-800 text-sm">{contactFormMessage}</div>
+            )}
+            {contactFormStatus === 'error' && (
+              <div className="p-4 rounded-lg bg-red-50 text-red-800 text-sm">{contactFormMessage}</div>
+            )}
             <div className="grid md:grid-cols-2 gap-6">
-              <div><Label htmlFor="contact-firstname" className="text-gray-700">Jméno</Label><Input id="contact-firstname" placeholder="Vaše jméno" className="mt-2" /></div>
-              <div><Label htmlFor="contact-lastname" className="text-gray-700">Příjmení</Label><Input id="contact-lastname" placeholder="Vaše příjmení" className="mt-2" /></div>
+              <div><Label htmlFor="contact-firstname" className="text-gray-700">Jméno</Label><Input id="contact-firstname" name="firstname" placeholder="Vaše jméno" className="mt-2" /></div>
+              <div><Label htmlFor="contact-lastname" className="text-gray-700">Příjmení</Label><Input id="contact-lastname" name="lastname" placeholder="Vaše příjmení" className="mt-2" /></div>
             </div>
-            <div><Label htmlFor="contact-phone" className="text-gray-700">Telefon</Label><Input id="contact-phone" type="tel" placeholder="+420 123 456 789" className="mt-2" /></div>
-            <div><Label htmlFor="contact-email" className="text-gray-700">Email</Label><Input id="contact-email" type="email" placeholder="vas@email.cz" className="mt-2" /></div>
+            <div><Label htmlFor="contact-phone" className="text-gray-700">Telefon</Label><Input id="contact-phone" name="phone" type="tel" placeholder="+420 123 456 789" className="mt-2" /></div>
+            <div><Label htmlFor="contact-email" className="text-gray-700">Email</Label><Input id="contact-email" name="email" type="email" placeholder="vas@email.cz" className="mt-2" /></div>
             <div><Label htmlFor="contact-region" className="text-gray-700">Kraj</Label>
-              <Select className="mt-2">
+              <Select name="region" className="mt-2">
                 <option value="">Vyberte kraj</option>
-                {regions.map((region) => (<option key={region} value={region.toLowerCase()}>{region}</option>))}
+                {regions.map((region) => (<option key={region} value={region}>{region}</option>))}
               </Select>
             </div>
-            <Button type="submit" className="w-full bg-green-500 hover:bg-green-600 text-white py-6 text-lg font-semibold">Poslat</Button>
+            <Button type="submit" className="w-full bg-green-500 hover:bg-green-600 text-white py-6 text-lg font-semibold" disabled={contactFormStatus === 'sending'}>
+              {contactFormStatus === 'sending' ? 'Odesílám…' : 'Poslat'}
+            </Button>
           </form>
         </div>
       </section>

@@ -1,14 +1,17 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Phone, Mail, Menu, X, Clock } from 'lucide-react'
+import { Phone, Mail, Menu, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
+import { submitContactForm } from '@/lib/formSubmit'
 
 function Kontakt() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [formStatus, setFormStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle')
+  const [formMessage, setFormMessage] = useState('')
 
   const regions = ["Hlavní město Praha", "Středočeský kraj", "Jihočeský kraj", "Jihomoravský kraj", "Karlovarský kraj", "Královéhradecký kraj", "Liberecký kraj", "Moravskoslezský kraj", "Olomoucký kraj", "Pardubický kraj", "Plzeňský kraj", "Ústecký kraj", "Vysočina", "Zlínský kraj"]
 
@@ -31,7 +34,7 @@ function Kontakt() {
             <div className="hidden md:flex items-center">
               <a href="tel:+420608861111" className="flex items-center gap-2 px-5 py-2.5 border-2 border-green-500 text-green-500 rounded-full hover:bg-green-500 hover:text-white transition-all font-medium">
                 <Phone className="w-4 h-4" />
-                <span>608 861 111</span>
+                <span>Zavolejte: 608 861 111</span>
               </a>
             </div>
             <button className="md:hidden p-2" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
@@ -52,7 +55,7 @@ function Kontakt() {
       </header>
 
       {/* Hero Section */}
-      <section className="pt-28 pb-12 bg-green-500">
+      <section className="pt-36 pb-12 bg-green-500">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">Kontaktujte nás</h1>
           <p className="text-lg text-white/90 max-w-2xl mx-auto">
@@ -121,67 +124,78 @@ function Kontakt() {
                   </div>
                 </div>
 
-                {/* Opening Hours */}
-                <div className="bg-gray-50 rounded-xl p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                    <Clock className="w-5 h-5 text-green-500" />
-                    Otevírací doba
-                  </h3>
-                  <div className="space-y-2 text-gray-600">
-                    <div className="flex justify-between"><span>Pondělí - Pátek:</span><span className="font-medium">8:00 - 17:00</span></div>
-                    <div className="flex justify-between"><span>Sobota:</span><span className="font-medium">9:00 - 12:00</span></div>
-                    <div className="flex justify-between"><span>Neděle:</span><span className="font-medium text-gray-400">Zavřeno</span></div>
-                  </div>
-                </div>
               </div>
             </div>
 
             {/* Contact Form */}
             <div>
               <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-8">Napište nám</h2>
-              <form className="space-y-6 bg-gray-50 rounded-xl p-8">
+              <form
+                className="space-y-6 bg-gray-50 rounded-xl p-8"
+                onSubmit={async (e) => {
+                  e.preventDefault()
+                  setFormStatus('sending')
+                  setFormMessage('')
+                  const result = await submitContactForm(e.currentTarget)
+                  if (result.success) {
+                    setFormStatus('success')
+                    setFormMessage('Zpráva byla odeslána. Ozveme se vám co nejdříve.')
+                    e.currentTarget.reset()
+                  } else {
+                    setFormStatus('error')
+                    setFormMessage(result.error)
+                  }
+                }}
+              >
+                {formStatus === 'success' && (
+                  <div className="p-4 rounded-lg bg-green-50 text-green-800 text-sm">{formMessage}</div>
+                )}
+                {formStatus === 'error' && (
+                  <div className="p-4 rounded-lg bg-red-50 text-red-800 text-sm">{formMessage}</div>
+                )}
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
                     <Label htmlFor="firstname" className="text-gray-700">Jméno *</Label>
-                    <Input id="firstname" placeholder="Vaše jméno" className="mt-2" />
+                    <Input id="firstname" name="firstname" placeholder="Vaše jméno" className="mt-2" required />
                   </div>
                   <div>
                     <Label htmlFor="lastname" className="text-gray-700">Příjmení *</Label>
-                    <Input id="lastname" placeholder="Vaše příjmení" className="mt-2" />
+                    <Input id="lastname" name="lastname" placeholder="Vaše příjmení" className="mt-2" required />
                   </div>
                 </div>
                 <div>
                   <Label htmlFor="phone" className="text-gray-700">Telefon *</Label>
-                  <Input id="phone" type="tel" placeholder="+420 123 456 789" className="mt-2" />
+                  <Input id="phone" name="phone" type="tel" placeholder="+420 123 456 789" className="mt-2" required />
                 </div>
                 <div>
                   <Label htmlFor="email" className="text-gray-700">Email *</Label>
-                  <Input id="email" type="email" placeholder="vas@email.cz" className="mt-2" />
+                  <Input id="email" name="email" type="email" placeholder="vas@email.cz" className="mt-2" required />
                 </div>
                 <div>
                   <Label htmlFor="region" className="text-gray-700">Kraj</Label>
-                  <Select className="mt-2">
+                  <Select name="region" className="mt-2">
                     <option value="">Vyberte kraj</option>
-                    {regions.map((region) => (<option key={region} value={region.toLowerCase()}>{region}</option>))}
+                    {regions.map((region) => (<option key={region} value={region}>{region}</option>))}
                   </Select>
                 </div>
                 <div>
                   <Label htmlFor="message" className="text-gray-700">Vaše zpráva</Label>
-                  <textarea 
-                    id="message" 
-                    placeholder="Popište nám váš projekt..." 
+                  <textarea
+                    id="message"
+                    name="message"
+                    placeholder="Popište nám váš projekt..."
                     rows={5}
                     className="w-full mt-2 px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
                   />
                 </div>
                 <div className="flex items-start gap-2">
-                  <Checkbox id="consent" className="mt-1" />
+                  <Checkbox id="consent" name="consent" value="Souhlasím" className="mt-1" required />
                   <Label htmlFor="consent" className="text-sm text-gray-600">
                     Souhlasím se <Link to="/ochrana-udaju" className="text-green-500 underline">zpracováním osobních údajů</Link> *
                   </Label>
                 </div>
-                <Button type="submit" className="w-full bg-green-500 hover:bg-green-600 text-white py-4 text-lg font-semibold">
-                  Odeslat zprávu
+                <Button type="submit" className="w-full bg-green-500 hover:bg-green-600 text-white py-4 text-lg font-semibold" disabled={formStatus === 'sending'}>
+                  {formStatus === 'sending' ? 'Odesílám…' : 'Odeslat zprávu'}
                 </Button>
               </form>
             </div>
